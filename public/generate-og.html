@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate OG Image</title></head>
+<body>
+<canvas id="canvas" width="1200" height="630"></canvas>
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  // Background
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0, 0, 1200, 630);
+  
+  // Border
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(20, 20, 1160, 590);
+  
+  // Title
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = 'bold 48px "Inter", Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('HOW TO WIN FRIENDS', 600, 200);
+  ctx.fillText('AND INFLUENCE PEOPLE', 600, 270);
+  
+  // Author
+  ctx.fillStyle = '#e0e0e0';
+  ctx.font = '32px "Inter", Arial';
+  ctx.fillText('Dale Carnegie', 600, 350);
+  
+  // Subtitle
+  ctx.fillStyle = '#9ca3af';
+  ctx.font = '24px "Inter", Arial';
+  ctx.fillText('Complete Classic Edition', 600, 430);
+  
+  // Save
+  const link = document.createElement('a');
+  link.download = 'og-image.png';
+  link.href = canvas.toDataURL();
+  link.click();
+</script>
+<p>OG image downloaded. Place it in public folder as og-image.png</p>
+</body>
+</html>
