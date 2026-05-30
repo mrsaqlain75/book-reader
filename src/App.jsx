@@ -1,8 +1,129 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams } from 'react-router-dom';
 
-function App() {
-  const [bookData, setBookData] = useState(null);
-  const [loading, setLoading] = useState(true);
+// Helper function to update page title
+const updateTitle = (title) => {
+  document.title = title;
+};
+
+// Homepage Component
+function HomePage({ books }) {
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const navigate = useNavigate();
+
+  // Set page title
+  useEffect(() => {
+    updateTitle('Book Library | Read Books with Saqlain Amin');
+  }, []);
+
+  // Load theme preference
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove('dark');
+    } else {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    if (newTheme) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
+  const handleSelectBook = (book) => {
+    navigate(`/book/${book.id}`);
+  };
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-300">
+      {/* Header */}
+      <header className="sticky top-0 z-20 bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 shadow-sm">
+        <div className="max-w-md mx-auto px-4 py-4 text-center">
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Read Books</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              with best experience with{' '}
+              <a 
+                href="https://saqlainamin.online" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-bold text-amber-600 dark:text-amber-400 hover:underline hover:text-amber-700 dark:hover:text-amber-300 transition-colors"
+              >
+                Saqlain Amin
+              </a>
+            </p>
+        </div>
+      </header>
+
+      {/* Theme Toggle Button on Homepage */}
+      <div className="max-w-md mx-auto px-4 py-2 flex justify-end">
+        <button 
+          onClick={toggleTheme}
+          className="p-2 rounded-full active:bg-gray-100 dark:active:bg-gray-800 transition-colors"
+        >
+          <span className="material-symbols-outlined text-xl text-gray-700 dark:text-gray-300">
+            {isDarkMode ? 'light_mode' : 'dark_mode'}
+          </span>
+        </button>
+      </div>
+
+      {/* Book List */}
+      <main className="max-w-md mx-auto px-4 py-6">
+        <div className="space-y-6">
+          {books.map((book, index) => (
+            <div
+              key={index}
+              onClick={() => handleSelectBook(book)}
+              className="block bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow overflow-hidden border border-gray-100 dark:border-gray-700 cursor-pointer active:scale-98 transition-transform"
+            >
+              <div className="flex p-4 gap-4">
+                {/* Book Cover */}
+                <div className="w-24 h-32 flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                  <img
+                    src={book.coverUrl}
+                    alt={`Cover of ${book.title}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/96x128?text=No+Cover';
+                    }}
+                  />
+                </div>
+                {/* Book Info */}
+                <div className="flex-1">
+                  <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">{book.title}</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">by {book.author}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-3">{book.description}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="text-center text-gray-400 dark:text-gray-600 text-xs py-6">
+        <div className="max-w-sm mx-auto px-4">
+          <button onClick={toggleTheme} className="hover:underline">
+            {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+          </button>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// Reader Component
+function ReaderPage({ bookData, bookTitle, bookAuthor }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentPart, setCurrentPart] = useState(0);
   const [currentChapter, setCurrentChapter] = useState(0);
@@ -10,6 +131,19 @@ function App() {
   const [scrollPercent, setScrollPercent] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const contentRef = useRef(null);
+  const navigate = useNavigate();
+
+  // Set page title based on current chapter
+  useEffect(() => {
+    if (bookData && currentChapterData) {
+      const chapterNum = currentChapterData?.chapter_number !== 'N/A' 
+        ? `Chapter ${currentChapterData.chapter_number}` 
+        : '';
+      updateTitle(`${chapterNum} - ${currentChapterData?.chapter_title} | ${bookTitle}`);
+    } else {
+      updateTitle(`${bookTitle} by ${bookAuthor} | Read Online`);
+    }
+  }, [currentPart, currentChapter, bookData, bookTitle, bookAuthor]);
 
   // Load theme preference
   useEffect(() => {
@@ -36,55 +170,23 @@ function App() {
     }
   };
 
-  // Clean text function
-  const cleanText = (text) => {
-    return text
-      .replace(/\r\n/g, '\n')
-      .replace(/(\w+)-\s*\n\s*(\w+)/g, '$1$2')
-      .replace(/([^\n])\n([^\n])/g, '$1 $2')
-      .replace(/[ \t]+/g, ' ')
-      .replace(/\s+([.,!?;:])/g, '$1')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
-  };
-
-  // Load book data
+  // Load saved progress for this book
   useEffect(() => {
-    fetch('/book.json')
-      .then(res => res.json())
-      .then(data => {
-        const cleanedData = {
-          ...data,
-          parts: data.parts.map(part => ({
-            ...part,
-            chapters: part.chapters.map(chapter => ({
-              ...chapter,
-              content: cleanText(chapter.content)
-            }))
-          }))
-        };
-        setBookData(cleanedData);
-        setLoading(false);
-        const savedPart = localStorage.getItem('book_part');
-        const savedChapter = localStorage.getItem('book_chapter');
-        if (savedPart !== null && savedChapter !== null) {
-          setCurrentPart(parseInt(savedPart));
-          setCurrentChapter(parseInt(savedChapter));
-        }
-      })
-      .catch(err => {
-        console.error('Error loading book:', err);
-        setLoading(false);
-      });
-  }, []);
+    const savedPart = localStorage.getItem(`book_part_${bookTitle}`);
+    const savedChapter = localStorage.getItem(`book_chapter_${bookTitle}`);
+    if (savedPart !== null && savedChapter !== null) {
+      setCurrentPart(parseInt(savedPart));
+      setCurrentChapter(parseInt(savedChapter));
+    }
+  }, [bookTitle]);
 
   // Save progress
   const saveProgress = useCallback(() => {
-    localStorage.setItem('book_part', currentPart);
-    localStorage.setItem('book_chapter', currentChapter);
+    localStorage.setItem(`book_part_${bookTitle}`, currentPart);
+    localStorage.setItem(`book_chapter_${bookTitle}`, currentChapter);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2000);
-  }, [currentPart, currentChapter]);
+  }, [currentPart, currentChapter, bookTitle]);
 
   // Handle scroll
   const handleScroll = useCallback(() => {
@@ -133,23 +235,17 @@ function App() {
     }
   }, [currentPart, currentChapter, bookData, navigateTo]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex items-center justify-center">
-        <div className="text-amber-600 dark:text-amber-500 text-center">
-          <div className="text-xl mb-2">Loading book...</div>
-          <div className="w-8 h-8 border-2 border-amber-600 dark:border-amber-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        </div>
-      </div>
-    );
-  }
-
   if (!bookData) {
     return (
       <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex items-center justify-center">
         <div className="text-red-500 text-center">
           <div className="text-xl mb-2">Failed to load book</div>
-          <div className="text-sm text-gray-500">Make sure book.json is in the public folder</div>
+          <button 
+            onClick={() => navigate('/')}
+            className="mt-4 px-4 py-2 bg-amber-500 text-white rounded-lg"
+          >
+            Back to Library
+          </button>
         </div>
       </div>
     );
@@ -171,16 +267,26 @@ function App() {
       {/* Header */}
       <header className="sticky top-0 z-20 bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 shadow-sm transition-colors duration-300">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-          <button 
-            onClick={() => setDrawerOpen(true)}
-            className="p-2 -ml-2 rounded-full active:bg-gray-100 dark:active:bg-gray-800 transition-colors"
-          >
-            <span className="material-symbols-outlined text-2xl text-gray-700 dark:text-gray-300">menu</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Back Button to Home */}
+            <Link 
+              to="/"
+              className="p-2 rounded-full active:bg-gray-100 dark:active:bg-gray-800 transition-colors"
+            >
+              <span className="material-symbols-outlined text-2xl text-gray-700 dark:text-gray-300">arrow_back</span>
+            </Link>
+            {/* Menu Button */}
+            <button 
+              onClick={() => setDrawerOpen(true)}
+              className="p-2 rounded-full active:bg-gray-100 dark:active:bg-gray-800 transition-colors"
+            >
+              <span className="material-symbols-outlined text-2xl text-gray-700 dark:text-gray-300">menu</span>
+            </button>
+          </div>
           
           <div className="text-center flex-1">
             <h1 className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wide">{bookData.author}</h1>
-            <div className="text-[10px] text-gray-400 dark:text-gray-500 truncate max-w-[150px] mx-auto">{bookData.title}</div>
+            <div className="text-[10px] text-gray-400 dark:text-gray-500 truncate max-w-[120px] mx-auto">{bookData.title}</div>
           </div>
           
           <div className="flex items-center gap-1">
@@ -342,9 +448,126 @@ function App() {
           <button onClick={toggleTheme} className="hover:underline">
             {isDarkMode ? 'Light Mode' : 'Dark Mode'}
           </button>
+          <span className="mx-2">·</span>
+          <Link to="/" className="text-blue-600 dark:text-blue-400 hover:underline">
+            Back to Library
+          </Link>
         </div>
       </footer>
     </div>
+  );
+}
+
+// Wrapper component that loads book data based on URL param
+function BookLoader() {
+  const { bookId } = useParams();
+  const [bookData, setBookData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [bookInfo, setBookInfo] = useState(null);
+  const navigate = useNavigate();
+
+  // Books list
+  const booksList = [
+    {
+      id: "how-to-win-friends",
+      title: "How to Win Friends and Influence People",
+      author: "Dale Carnegie",
+      coverUrl: "https://mphonline.com/cdn/shop/files/9780091906351_mph_HowtoWinFriendsandInfluencePeople.jpg?v=1703729569&width=640",
+      description: "The classic guide to effective communication, leadership, and building lasting relationships. Over 30 million copies sold worldwide.",
+      jsonPath: "/book.json"
+    }
+    // Add more books here later
+  ];
+
+  // Clean text function
+  const cleanText = (text) => {
+    return text
+      .replace(/\r\n/g, '\n')
+      .replace(/(\w+)-\s*\n\s*(\w+)/g, '$1$2')
+      .replace(/([^\n])\n([^\n])/g, '$1 $2')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\s+([.,!?;:])/g, '$1')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  };
+
+  useEffect(() => {
+    const book = booksList.find(b => b.id === bookId);
+    if (!book) {
+      navigate('/');
+      return;
+    }
+    setBookInfo(book);
+    
+    fetch(book.jsonPath)
+      .then(res => res.json())
+      .then(data => {
+        const cleanedData = {
+          ...data,
+          parts: data.parts.map(part => ({
+            ...part,
+            chapters: part.chapters.map(chapter => ({
+              ...chapter,
+              content: cleanText(chapter.content)
+            }))
+          }))
+        };
+        setBookData(cleanedData);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error loading book:', err);
+        setLoading(false);
+      });
+  }, [bookId, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-amber-600 dark:text-amber-500 text-center">
+          <div className="text-xl mb-2">Loading book...</div>
+          <div className="w-8 h-8 border-2 border-amber-600 dark:border-amber-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!bookData) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-red-500 text-center">
+          <div className="text-xl mb-2">Failed to load book</div>
+          <Link to="/" className="mt-4 inline-block px-4 py-2 bg-amber-500 text-white rounded-lg">
+            Back to Library
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return <ReaderPage bookData={bookData} bookTitle={bookInfo.title} bookAuthor={bookInfo.author} />;
+}
+
+// Main App Component
+function App() {
+  const booksList = [
+    {
+      id: "how-to-win-friends",
+      title: "How to Win Friends and Influence People",
+      author: "Dale Carnegie",
+      coverUrl: "https://mphonline.com/cdn/shop/files/9780091906351_mph_HowtoWinFriendsandInfluencePeople.jpg?v=1703729569&width=640",
+      description: "The classic guide to effective communication, leadership, and building lasting relationships. Over 30 million copies sold worldwide.",
+      jsonPath: "/book.json"
+    }
+  ];
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage books={booksList} />} />
+        <Route path="/book/:bookId" element={<BookLoader />} />
+      </Routes>
+    </Router>
   );
 }
 
