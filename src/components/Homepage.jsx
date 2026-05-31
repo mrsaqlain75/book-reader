@@ -31,7 +31,6 @@ function HomePage({ books }) {
         </div>
       </header>
 
-      /*This is just a comment*/
 
       <main className="max-w-md mx-auto px-4 py-6">
         <div className="space-y-6">
