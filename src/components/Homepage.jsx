@@ -65,7 +65,16 @@ function HomePage({ books }) {
 
       <footer className="text-center text-gray-400 text-xs py-6">
         <div className="max-w-sm mx-auto px-4">
-          <p>© 2024 | All rights reserved</p>
+          <p>© 2026 | All rights reserved | Made by {" "}
+            <a 
+              href="https://saqlainamin.online" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-amber-600 hover:underline"
+            >
+              Saqlain Amin
+            </a>
+             {" "}with ❤️</p>
         </div>
       </footer>
     </div>
