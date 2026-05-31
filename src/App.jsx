@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useParams, useNavigate } from 'react-router-dom';
 import { SettingsProvider } from './contexts/SettingsContext';
-import HomePage from './components/HomePage';
+import HomePage from './components/Homepage';
 import ReaderPage from './components/ReaderPage';
 
 // Clean text function
