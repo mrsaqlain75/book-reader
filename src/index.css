@@ -11,11 +11,6 @@
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: #ffffff;
   }
-  
-  /* Dark mode body background */
-  .dark body {
-    background-color: #0a0a0a;
-  }
 }
 
 @layer utilities {
@@ -30,29 +25,31 @@
     border-radius: 20px;
   }
   
-  .dark .custom-scroll::-webkit-scrollbar-track {
-    background: #1a1a1a;
-  }
-  .dark .custom-scroll::-webkit-scrollbar-thumb {
-    background: #3a3a3a;
-  }
-  
   .drawer-transition {
     transition: transform 0.25s ease-in-out;
   }
   
-  .progress-toast {
-    animation: slideUp 0.3s ease-out;
+  .page-flip {
+    transition: transform 0.3s ease-out;
   }
   
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  .page-view {
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+    height: 100vh;
+  }
+  
+  .page {
+    scroll-snap-align: start;
+    height: 100vh;
+    overflow-y: auto;
   }
 }
+
+/* Font styles */
+.font-original { font-family: 'Inter', system-ui, sans-serif; }
+.font-quiet { font-family: 'Georgia', 'Times New Roman', serif; }
+.font-paper { font-family: 'Cormorant Garamond', Georgia, serif; }
+.font-bold { font-family: 'Playfair Display', Georgia, serif; letter-spacing: 0.01em; }
+.font-calm { font-family: 'Lora', Georgia, serif; }
+.font-focus { font-family: 'Source Sans Pro', system-ui, sans-serif; letter-spacing: 0.02em; }
